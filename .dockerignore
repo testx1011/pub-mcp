@@ -1,0 +1,13 @@
+node_modules/
+src/
+tests/
+.git/
+.gitignore
+*.md
+.env*
+!.env.example
+coverage/
+.DS_Store
+*.log
+dist/*.map
+dist/types/

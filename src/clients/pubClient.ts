@@ -331,28 +331,78 @@ export class PubClient {
       return cached as string;
     }
 
-    const versionPart = version ? `/${version}` : '';
-    const url = `${this.baseUrl}/packages/${name}${versionPart}/example`;
-
     try {
-      const response = await this.fetchWithRetry(url);
+      const versionPart = version ? `/${version}` : '';
+      const webUrl = `https://pub.dev/packages/${name}/example`;
 
-      if (response.status === 404) {
+      const webResponse = await fetch(webUrl);
+      if (webResponse.ok) {
+        const webHtml = await webResponse.text();
+
+        const preMatch = webHtml.match(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/);
+        if (preMatch && preMatch[1]) {
+          const exampleCode = preMatch[1]
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&#47;/g, '/')
+            .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)))
+            .trim();
+
+          if (exampleCode.length > 10) {
+            getPackageCache().set(cacheKey, exampleCode);
+            return exampleCode;
+          }
+        }
+      }
+
+      const apiUrl = `${this.baseUrl}/packages/${name}${versionPart}/example`;
+      const apiResponse = await this.fetchWithRetry(apiUrl);
+
+      if (apiResponse.status === 404) {
         return '';
       }
 
-      const content = await response.text();
+      const apiHtml = await apiResponse.text();
 
-      if (content.includes('<!DOCTYPE html>') || content.includes('<html')) {
-        return '';
+      if (apiHtml.includes('<!DOCTYPE html>') || apiHtml.includes('<html')) {
+        const preMatch = apiHtml.match(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/);
+        if (preMatch && preMatch[1]) {
+          const exampleCode = preMatch[1]
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&#47;/g, '/')
+            .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)))
+            .trim();
+
+          if (exampleCode.length > 10) {
+            getPackageCache().set(cacheKey, exampleCode);
+            return exampleCode;
+          }
+        }
+      } else if (apiHtml.length > 10) {
+        const exampleCode = apiHtml
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&#47;/g, '/')
+          .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)))
+          .trim();
+
+        if (exampleCode.length > 10) {
+          getPackageCache().set(cacheKey, exampleCode);
+          return exampleCode;
+        }
       }
 
-      if (content.length < 10) {
-        return '';
-      }
-
-      getPackageCache().set(cacheKey, content);
-      return content;
+      return '';
     } catch (error) {
       if (error instanceof PubClientError && error.statusCode === 404) {
         return '';

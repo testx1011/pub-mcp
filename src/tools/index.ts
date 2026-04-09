@@ -274,7 +274,22 @@ export async function handleGetChangelog(client: PubClient, input: GetChangelogI
 
 export async function handleGetExample(client: PubClient, input: GetExampleInput) {
   const example = await client.getExample(input.name, input.version);
-  return { example: example || 'No example available' };
+
+  if (!example || example === 'No example available') {
+    return {
+      hasExample: false,
+      example: 'No example available',
+      package: input.name,
+      note: 'This package does not have an example configured on pub.dev',
+    };
+  }
+
+  return {
+    hasExample: true,
+    example: example,
+    package: input.name,
+    format: 'dart',
+  };
 }
 
 export async function handleGetPackageMetrics(client: PubClient, input: GetPackageMetricsInput) {

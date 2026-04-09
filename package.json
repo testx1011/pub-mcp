@@ -1,6 +1,6 @@
 {
   "name": "pub-mcp",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "MCP server for pub.dev - Enables AI assistants to access Dart/Flutter package information",
   "main": "dist/cli.js",
   "type": "module",
@@ -9,11 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/pub-mcp.git"
+    "url": "git+https://github.com/testx1011/pub-mcp.git"
   },
-  "homepage": "https://github.com/yourusername/pub-mcp#readme",
+  "homepage": "https://github.com/testx1011/pub-mcp#readme",
   "bugs": {
-    "url": "https://github.com/yourusername/pub-mcp/issues"
+    "url": "https://github.com/testx1011/pub-mcp/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/testx1011/pub-mcp"
   },
   "scripts": {
     "build": "tsc",
@@ -38,11 +42,7 @@
     "claude",
     "openai"
   ],
-  "author": "Your Name <your@email.com>",
-  "funding": {
-    "type": "github",
-    "url": "https://github.com/yourusername/pub-mcp"
-  },
+  "author": "Jorge Armando Rivera <text.x1011@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

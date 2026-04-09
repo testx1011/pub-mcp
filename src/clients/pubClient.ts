@@ -137,7 +137,12 @@ export class PubClient {
 
     const data = (await response.json()) as {
       name: string;
-      latest: { version: string; published: string; description?: string };
+      latest: {
+        version: string;
+        published: string;
+        description?: string;
+        pubspec?: { repository?: string; homepage?: string };
+      };
       publisher?: { publisherName?: string };
       urls?: { homepage?: string; repository?: string; issues?: string };
     };
@@ -149,8 +154,8 @@ export class PubClient {
       published: data.latest.published,
       updated: data.latest.published,
       publisher: data.publisher?.publisherName,
-      homepage: data.urls?.homepage,
-      repository: data.urls?.repository,
+      homepage: data.urls?.homepage || data.latest.pubspec?.homepage,
+      repository: data.urls?.repository || data.latest.pubspec?.repository,
       issues: data.urls?.issues,
     };
 
@@ -203,6 +208,15 @@ export class PubClient {
       }
 
       const content = await response.text();
+
+      if (content.includes('<!DOCTYPE html>') || content.includes('<html')) {
+        return '';
+      }
+
+      if (content.length < 10) {
+        return '';
+      }
+
       getPackageCache().set(cacheKey, content);
       return content;
     } catch (error) {

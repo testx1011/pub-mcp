@@ -29,7 +29,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-const VERSION = '0.1.0';
+const VERSION = '0.3.0';
 
 const client = new PubClient();
 const githubClient = new GitHubClient();

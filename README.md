@@ -11,15 +11,33 @@
 
 ## ⚡ Quick Start
 
+### Option 1: Install Globally
+
 ```bash
-# Install globally
 npm install -g pub-mcp
-
-# Start server (stdio + HTTP)
 pub-mcp
+```
 
-# Or start with just HTTP on custom port
-pub-mcp --http --port 8080
+### Option 2: Use npx (Recommended)
+
+No installation required! Use directly in your MCP config:
+
+```json
+{
+  "mcpServers": {
+    "pub-mcp": {
+      "command": "npx",
+      "args": ["-y", "pub-mcp"]
+    }
+  }
+}
+```
+
+### Option 3: Local Installation
+
+```bash
+npm install pub-mcp
+npx pub-mcp
 ```
 
 That's it! Your MCP server is running on port 3000 (HTTP) and listening on stdio.
@@ -71,9 +89,28 @@ pub-mcp --health
 
 ### Connecting AI Clients
 
-#### Claude Desktop
+#### Claude Desktop / VS Code / Cursor
 
-Add to your `claude_desktop_config.json`:
+Add to your MCP settings file:
+
+- **Claude Desktop**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **VS Code**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/Model Context Protocol/mcp_settings.json`
+- **Cursor**: `[project root]/.cursor/mcp.json`
+
+**Option 1: npx (Recommended - no installation needed)**
+
+```json
+{
+  "mcpServers": {
+    "pub-mcp": {
+      "command": "npx",
+      "args": ["-y", "pub-mcp"]
+    }
+  }
+}
+```
+
+**Option 2: Global installation**
 
 ```json
 {
@@ -81,6 +118,19 @@ Add to your `claude_desktop_config.json`:
     "pub-mcp": {
       "command": "pub-mcp",
       "args": ["--stdio"]
+    }
+  }
+}
+```
+
+**Option 3: Local installation**
+
+```json
+{
+  "mcpServers": {
+    "pub-mcp": {
+      "command": "node",
+      "args": ["./node_modules/pub-mcp/dist/cli.js", "--stdio"]
     }
   }
 }
@@ -245,7 +295,7 @@ The `get_readme` tool supports a `format` parameter:
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/pub-mcp.git
+git clone https://github.com/testx1011/pub-mcp.git
 cd pub-mcp
 npm install
 

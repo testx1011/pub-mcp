@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2024-04-09
+
+### 🎉 Fixed
+
+- **README fetching** - Now properly fetches README from GitHub subdirectories
+  - Fixed parsing of GitHub URLs like `github.com/org/repo/tree/main/path`
+  - Improved fallback to repository root README when subdirectory README not found
+  - Added support for `pubspec.repository` field (used by Flutter packages)
+
+- **HTML detection** - Now properly handles when pub.dev returns HTML error pages
+
+### 📦 How to Use
+
+```json
+{
+  "mcpServers": {
+    "pub-mcp": {
+      "command": "npx",
+      "args": ["-y", "pub-mcp"]
+    }
+  }
+}
+```
+
+---
+
+## [0.2.0] - 2024-04-09
+
+### 🎉 Added
+
+- **npx Support** - Now works without global installation!
+  - Users can use `npx -y pub-mcp` directly
+  - No need for global installation
+  - Works with any MCP client configuration
+
+### 📦 How to Use
+
+```json
+{
+  "mcpServers": {
+    "pub-mcp": {
+      "command": "npx",
+      "args": ["-y", "pub-mcp"]
+    }
+  }
+}
+```
+
+---
+
 ## [0.1.0] - 2024-04-09
 
 ### 🎉 Added

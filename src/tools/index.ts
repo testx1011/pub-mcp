@@ -201,7 +201,11 @@ export async function handleGetReadme(
       if (pkg.repository) {
         const parsed = parseGitHubUrl(pkg.repository);
         if (parsed) {
-          const githubReadme = await githubClient.getRepositoryReadme(parsed.owner, parsed.repo);
+          const githubReadme = await githubClient.getRepositoryReadme(
+            parsed.owner,
+            parsed.repo,
+            parsed.path
+          );
           if (githubReadme) {
             finalReadme = githubReadme;
             source = 'github';

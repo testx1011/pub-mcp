@@ -21,6 +21,7 @@ import {
   handleGetPackageScore,
   handleGetChangelog,
   handleGetPackageMetrics,
+  handleGetExample,
 } from './tools/index.js';
 import pino from 'pino';
 import express from 'express';
@@ -29,7 +30,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-const VERSION = '0.3.0';
+const VERSION = '0.2.1';
 
 const client = new PubClient();
 const githubClient = new GitHubClient();
@@ -175,6 +176,10 @@ function createServer(): Server {
 
         case 'get_package_metrics':
           result = await handleGetPackageMetrics(client, args as { name: string });
+          break;
+
+        case 'get_example':
+          result = await handleGetExample(client, args as { name: string; version?: string });
           break;
 
         default:

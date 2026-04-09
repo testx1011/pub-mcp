@@ -40,6 +40,11 @@ export const getPackageMetricsSchema = z.object({
   name: z.string().min(1),
 });
 
+export const getExampleSchema = z.object({
+  name: z.string().min(1),
+  version: z.string().optional(),
+});
+
 export type SearchPackagesInput = { query: string; limit?: number };
 export type GetPackageInfoInput = { name: string };
 export type GetPackageVersionsInput = { name: string };
@@ -52,6 +57,7 @@ export type GetDependenciesInput = { name: string; version?: string };
 export type GetPackageScoreInput = { name: string };
 export type GetChangelogInput = { name: string; version?: string };
 export type GetPackageMetricsInput = { name: string };
+export type GetExampleInput = { name: string; version?: string };
 
 export interface ToolDefinition {
   name: string;
@@ -141,6 +147,18 @@ export const tools: ToolDefinition[] = [
   {
     name: 'get_changelog',
     description: 'Get the changelog of a specific package version',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Package name' },
+        version: { type: 'string', description: 'Specific version (optional, defaults to latest)' },
+      },
+      required: ['name'],
+    },
+  },
+  {
+    name: 'get_example',
+    description: 'Get the example code of a package',
     inputSchema: {
       type: 'object',
       properties: {
@@ -252,6 +270,11 @@ export async function handleGetChangelog(client: PubClient, input: GetChangelogI
   }
 
   return changelog;
+}
+
+export async function handleGetExample(client: PubClient, input: GetExampleInput) {
+  const example = await client.getExample(input.name, input.version);
+  return { example: example || 'No example available' };
 }
 
 export async function handleGetPackageMetrics(client: PubClient, input: GetPackageMetricsInput) {

@@ -323,4 +323,41 @@ export class PubClient {
       throw error;
     }
   }
+
+  async getExample(name: string, version?: string): Promise<string> {
+    const cacheKey = `example:${name}:${version || 'latest'}`;
+    const cached = getPackageCache().get(cacheKey);
+    if (cached) {
+      return cached as string;
+    }
+
+    const versionPart = version ? `/${version}` : '';
+    const url = `${this.baseUrl}/packages/${name}${versionPart}/example`;
+
+    try {
+      const response = await this.fetchWithRetry(url);
+
+      if (response.status === 404) {
+        return '';
+      }
+
+      const content = await response.text();
+
+      if (content.includes('<!DOCTYPE html>') || content.includes('<html')) {
+        return '';
+      }
+
+      if (content.length < 10) {
+        return '';
+      }
+
+      getPackageCache().set(cacheKey, content);
+      return content;
+    } catch (error) {
+      if (error instanceof PubClientError && error.statusCode === 404) {
+        return '';
+      }
+      throw error;
+    }
+  }
 }

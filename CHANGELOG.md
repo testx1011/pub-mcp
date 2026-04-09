@@ -7,7 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.3.0] - 2024-04-09
+## [0.2.1] - 2024-04-09
+
+### 🎉 Fixed
+
+- **README fetching** - Now properly fetches README from GitHub subdirectories
+  - Fixed parsing of GitHub URLs like `github.com/org/repo/tree/main/path`
+  - Improved fallback to repository root README when subdirectory README not found
+  - Added support for `pubspec.repository` field (used by Flutter packages)
+
+- **HTML detection** - Now properly handles when pub.dev returns HTML error pages
+
+---
+
+## [0.2.0] - 2024-04-09
 
 ### 🎉 Fixed
 

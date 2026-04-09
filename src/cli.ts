@@ -22,6 +22,7 @@ import {
   handleGetChangelog,
   handleGetPackageMetrics,
   handleGetExample,
+  handleSearchSimilarPackages,
 } from './tools/index.js';
 import pino from 'pino';
 import express from 'express';
@@ -30,7 +31,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-const VERSION = '0.2.2';
+const VERSION = '0.2.3';
 
 const client = new PubClient();
 const githubClient = new GitHubClient();
@@ -101,7 +102,7 @@ function createServer(): Server {
             {
               uri,
               mimeType: 'application/json',
-              text: JSON.stringify({ info, score, versionCount: versions.length }),
+              text: JSON.stringify({ info, score, versionCount: versions.versions.length }),
             },
           ],
         };
@@ -180,6 +181,13 @@ function createServer(): Server {
 
         case 'get_example':
           result = await handleGetExample(client, args as { name: string; version?: string });
+          break;
+
+        case 'search_similar_packages':
+          result = await handleSearchSimilarPackages(
+            client,
+            args as { name?: string; tags?: string[]; limit?: number }
+          );
           break;
 
         default:

@@ -1,6 +1,6 @@
 {
   "name": "pub-mcp",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "MCP server for pub.dev - Enables AI assistants to access Dart/Flutter package information",
   "main": "dist/cli.js",
   "type": "module",

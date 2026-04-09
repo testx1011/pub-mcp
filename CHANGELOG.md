@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.3] - 2024-04-09
+
+### 🎉 Enhanced Features
+
+- **search_packages** - Added `sdk`, `platform`, `topic` filters
+- **get_dependencies** - Now includes `devDependencies`
+- **get_package_versions** - Added `firstPublished`, `lastUpdated` (timeline)
+- **get_package_info** - Now includes full `pubspec`
+- **get_package_score** - Added parsed compatibility: `platforms`, `sdk`, `isFlutterFavorite`, `isNullSafe`, `isDart3Compatible`
+
+### ✨ New Features
+
+- **search_similar_packages** - Find packages related by tags
+
+---
+
 ## [0.2.1] - 2024-04-09
 
 ### 🎉 Fixed

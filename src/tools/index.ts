@@ -45,7 +45,13 @@ export const getExampleSchema = z.object({
   version: z.string().optional(),
 });
 
-export type SearchPackagesInput = { query: string; limit?: number };
+export type SearchPackagesInput = {
+  query: string;
+  limit?: number;
+  sdk?: string;
+  platform?: string;
+  topic?: string;
+};
 export type GetPackageInfoInput = { name: string };
 export type GetPackageVersionsInput = { name: string };
 export type GetReadmeInput = {
@@ -58,6 +64,7 @@ export type GetPackageScoreInput = { name: string };
 export type GetChangelogInput = { name: string; version?: string };
 export type GetPackageMetricsInput = { name: string };
 export type GetExampleInput = { name: string; version?: string };
+export type SearchSimilarPackagesInput = { name?: string; tags?: string[]; limit?: number };
 
 export interface ToolDefinition {
   name: string;
@@ -72,12 +79,26 @@ export interface ToolDefinition {
 export const tools: ToolDefinition[] = [
   {
     name: 'search_packages',
-    description: 'Search for packages on pub.dev by query',
+    description: 'Search for packages on pub.dev by query with optional filters',
     inputSchema: {
       type: 'object',
       properties: {
         query: { type: 'string', description: 'Search query string' },
         limit: { type: 'number', description: 'Maximum number of results (default 10)' },
+        sdk: {
+          type: 'string',
+          description: 'Filter by SDK: dart, flutter',
+          enum: ['dart', 'flutter'],
+        },
+        platform: {
+          type: 'string',
+          description: 'Filter by platform: android, ios, web, linux, macOS, windows',
+          enum: ['android', 'ios', 'web', 'linux', 'macOS', 'windows'],
+        },
+        topic: {
+          type: 'string',
+          description: 'Filter by topic (e.g., http, firebase, state-management)',
+        },
       },
       required: ['query'],
     },
@@ -179,10 +200,35 @@ export const tools: ToolDefinition[] = [
       required: ['name'],
     },
   },
+  {
+    name: 'search_similar_packages',
+    description: 'Find packages similar to a given package or by tags',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Package name to find similar packages for' },
+        tags: { type: 'array', items: { type: 'string' }, description: 'Tags to search for' },
+        limit: { type: 'number', description: 'Maximum number of results (default 10)' },
+      },
+    },
+  },
 ];
 
 export async function handleSearchPackages(client: PubClient, input: SearchPackagesInput) {
-  const result = await client.searchPackages(input.query, input.limit);
+  let searchQuery = input.query;
+
+  if (input.sdk) {
+    searchQuery += ` sdk:${input.sdk}`;
+  }
+  if (input.platform) {
+    searchQuery += ` platform:${input.platform}`;
+  }
+  if (input.topic) {
+    searchQuery += ` topic:${input.topic}`;
+  }
+
+  const result = await client.searchPackages(searchQuery, input.limit);
+
   return {
     packages: result.packages.map((p) => ({
       name: p.name,
@@ -190,6 +236,11 @@ export async function handleSearchPackages(client: PubClient, input: SearchPacka
       latestVersion: p.latestVersion,
     })),
     total: result.total,
+    filters: {
+      sdk: input.sdk,
+      platform: input.platform,
+      topic: input.topic,
+    },
   };
 }
 
@@ -199,8 +250,12 @@ export async function handleGetPackageInfo(client: PubClient, input: GetPackageI
 }
 
 export async function handleGetPackageVersions(client: PubClient, input: GetPackageVersionsInput) {
-  const versions = await client.getPackageVersions(input.name);
-  return { versions };
+  const result = await client.getPackageVersions(input.name);
+  return {
+    versions: result.versions,
+    firstPublished: result.firstPublished,
+    lastUpdated: result.lastUpdated,
+  };
 }
 
 export async function handleGetReadme(
@@ -249,8 +304,11 @@ export async function handleGetReadme(
 }
 
 export async function handleGetDependencies(client: PubClient, input: GetDependenciesInput) {
-  const dependencies = await client.getDependencies(input.name, input.version);
-  return { dependencies };
+  const result = await client.getDependencies(input.name, input.version);
+  return {
+    dependencies: result.dependencies,
+    devDependencies: result.devDependencies,
+  };
 }
 
 export async function handleGetPackageScore(client: PubClient, input: GetPackageScoreInput) {
@@ -302,7 +360,40 @@ export async function handleGetPackageMetrics(client: PubClient, input: GetPacka
   return {
     info,
     score,
-    versionCount: versions.length,
-    latestVersion: versions[0]?.version,
+    versionCount: versions.versions.length,
+    latestVersion: versions.versions[0]?.version,
+  };
+}
+
+export async function handleSearchSimilarPackages(
+  client: PubClient,
+  input: SearchSimilarPackagesInput
+) {
+  let searchQuery = '';
+
+  if (input.name) {
+    const score = await client.getPackageScore(input.name);
+    const tags = score.tags?.slice(0, 5) || [];
+    searchQuery = tags.join(' ');
+  } else if (input.tags) {
+    searchQuery = input.tags.join(' ');
+  } else {
+    return { packages: [], total: 0, message: 'Provide either name or tags' };
+  }
+
+  const result = await client.searchPackages(searchQuery, input.limit || 10);
+
+  const filteredPackages = input.name
+    ? result.packages.filter((p) => p.name !== input.name)
+    : result.packages;
+
+  return {
+    packages: filteredPackages.map((p) => ({
+      name: p.name,
+      description: p.description,
+      latestVersion: p.latestVersion,
+    })),
+    total: filteredPackages.length,
+    searchTags: input.tags || [],
   };
 }

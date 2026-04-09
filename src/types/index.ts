@@ -8,6 +8,7 @@ export interface PackageInfo {
   homepage?: string;
   repository?: string;
   issues?: string;
+  pubspec?: Record<string, unknown>;
 }
 
 export interface PackageVersion {
@@ -21,6 +22,11 @@ export interface PackageScore {
   likeCount: number;
   downloadCount30Days: number;
   tags: string[];
+  platforms?: string[];
+  isFlutterFavorite?: boolean;
+  isNullSafe?: boolean;
+  isDart3Compatible?: boolean;
+  sdk?: string;
 }
 
 export interface PackageChangelog {
@@ -40,6 +46,7 @@ export interface SearchResult {
     name: string;
     description: string;
     latestVersion: string;
+    tags?: string[];
   }[];
   total: number;
 }

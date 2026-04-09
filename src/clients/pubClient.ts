@@ -141,7 +141,7 @@ export class PubClient {
         version: string;
         published: string;
         description?: string;
-        pubspec?: { repository?: string; homepage?: string };
+        pubspec?: Record<string, unknown>;
       };
       publisher?: { publisherName?: string };
       urls?: { homepage?: string; repository?: string; issues?: string };
@@ -154,20 +154,27 @@ export class PubClient {
       published: data.latest.published,
       updated: data.latest.published,
       publisher: data.publisher?.publisherName,
-      homepage: data.urls?.homepage || data.latest.pubspec?.homepage,
-      repository: data.urls?.repository || data.latest.pubspec?.repository,
+      homepage: data.urls?.homepage || (data.latest.pubspec?.homepage as string),
+      repository: data.urls?.repository || (data.latest.pubspec?.repository as string),
       issues: data.urls?.issues,
+      pubspec: data.latest.pubspec,
     };
 
     getPackageCache().set(cacheKey, result);
     return result;
   }
 
-  async getPackageVersions(name: string): Promise<PackageVersion[]> {
+  async getPackageVersions(
+    name: string
+  ): Promise<{ versions: PackageVersion[]; firstPublished?: string; lastUpdated?: string }> {
     const cacheKey = `versions:${name}`;
     const cached = getPackageCache().get(cacheKey);
     if (cached) {
-      return cached as PackageVersion[];
+      return cached as {
+        versions: PackageVersion[];
+        firstPublished?: string;
+        lastUpdated?: string;
+      };
     }
 
     const url = `${this.baseUrl}/packages/${name}`;
@@ -181,10 +188,20 @@ export class PubClient {
       versions: { version: string; published: string }[];
     };
 
-    const result = data.versions.map((v) => ({
+    const versions = data.versions.map((v) => ({
       version: v.version,
       published: v.published,
     }));
+
+    const sortedByDate = [...versions].sort(
+      (a, b) => new Date(a.published).getTime() - new Date(b.published).getTime()
+    );
+
+    const result = {
+      versions,
+      firstPublished: sortedByDate[0]?.published,
+      lastUpdated: sortedByDate[sortedByDate.length - 1]?.published,
+    };
 
     getPackageCache().set(cacheKey, result);
     return result;
@@ -227,11 +244,17 @@ export class PubClient {
     }
   }
 
-  async getDependencies(name: string, version?: string): Promise<Record<string, string>> {
+  async getDependencies(
+    name: string,
+    version?: string
+  ): Promise<{ dependencies: Record<string, string>; devDependencies: Record<string, string> }> {
     const cacheKey = `deps:${name}:${version || 'latest'}`;
     const cached = getPackageCache().get(cacheKey);
     if (cached) {
-      return cached as Record<string, string>;
+      return cached as {
+        dependencies: Record<string, string>;
+        devDependencies: Record<string, string>;
+      };
     }
 
     const versionPart = version ? `/${version}` : '';
@@ -243,10 +266,17 @@ export class PubClient {
     }
 
     const data = (await response.json()) as {
-      latest?: { dependencies?: Record<string, string> };
+      latest?: {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
     };
 
-    const result = data.latest?.dependencies || {};
+    const result = {
+      dependencies: data.latest?.dependencies || {},
+      devDependencies: data.latest?.devDependencies || {},
+    };
+
     getPackageCache().set(cacheKey, result);
     return result;
   }
@@ -273,12 +303,23 @@ export class PubClient {
       tags?: string[];
     };
 
+    const tags = data.tags ?? [];
+    const platforms = tags
+      .filter((t) => t.startsWith('platform:'))
+      .map((t) => t.replace('platform:', ''));
+    const sdk = tags.find((t) => t.startsWith('sdk:'))?.replace('sdk:', '');
+
     const result: PackageScore = {
       grantedPoints: data.grantedPoints ?? 0,
       maxPoints: data.maxPoints ?? 0,
       likeCount: data.likeCount ?? 0,
       downloadCount30Days: data.downloadCount30Days ?? 0,
-      tags: data.tags ?? [],
+      tags,
+      platforms: platforms.length > 0 ? platforms : undefined,
+      sdk: sdk,
+      isFlutterFavorite: tags.includes('is:flutter-favorite'),
+      isNullSafe: tags.includes('is:null-safe'),
+      isDart3Compatible: tags.includes('is:dart3-compatible'),
     };
 
     getPackageCache().set(cacheKey, result);
